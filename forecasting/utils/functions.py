@@ -127,6 +127,28 @@ def preprocess_data(df_data, name_target, name_features, window_size, scaler='Mi
     return X, y, info_dates, scaler, idx_target
 
 
+class EarlyStopping:
+    def __init__(self, patience=5, min_delta=0):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.best_loss = np.inf
+        self.counter = 0
+        self.early_stop = False
+        
+    def __call__(self, val_loss):
+        if val_loss < self.best_loss - self.min_delta:
+            self.best_loss = val_loss
+            self.counter = 0  # reset counter if validation loss improves
+        else:
+            self.counter += 1
+            if self.counter >= self.patience:
+                self.early_stop = True
+
+def make_predictions(model, X_loader):
+    model.eval()
+    with torch.no_grad():
+        predictions = model(X_loader)
+    return predictions.detach()                
 
 #Transformer
 class PositionalEncoding(nn.Module):
@@ -153,7 +175,8 @@ class modelTransformer(nn.Module):
     def __init__(self, input_size=1, d_model=64, nhead=4, num_layers=2, output_size=1,max_len=60):
         super(modelTransformer, self).__init__()
         self.d_model = d_model
-
+        
+        #d_model =embed_dim
         # Linear transformation before the transformer
         self.input_fc = nn.Linear(input_size, d_model)
 
@@ -180,11 +203,11 @@ class modelTransformer(nn.Module):
 
 #LSTM
 class modelLSTM(nn.Module):
-    def __init__(self, input_size=1, hidden_layer_size=100, output_size=1):
+    def __init__(self, input_size=1, hidden_layer_size=100, num_layers=1, output_size=1):
         super(modelLSTM, self).__init__()
 
         self.hidden_layer_size = hidden_layer_size
-        self.lstm = nn.LSTM(input_size, hidden_layer_size, batch_first=True)
+        self.lstm = nn.LSTM(input_size, hidden_layer_size, num_layers, batch_first=True)
         self.linear = nn.Linear(hidden_layer_size, output_size)
 
     def forward(self, x):

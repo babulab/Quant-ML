@@ -38,9 +38,9 @@ Several planned improvements and additions to this repository include:
 
 
 - gpytorch  >=1.12
-- botorch   >= 0.11
+- botorch >= 0.11
+- chronos
 - matplotlib    >=3.9
 - seaborn   >=3.9
-- gym   >=0.26
-- stable_baselines3    >=2.3
 - mlflow    >=2.16 
+- optuna 
